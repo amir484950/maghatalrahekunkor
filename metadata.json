@@ -1,0 +1,6 @@
+{
+  "name": "استراتژی محتوای سئو راه کنکور",
+  "description": "استراتژی سئو و نقشه راه تولید محتوای فصلی برای سایت راه کنکور بر اساس تحلیل رقبا و شکاف بازار",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
