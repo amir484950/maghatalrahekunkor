@@ -6,6 +6,9 @@ export interface CompetitorPage {
   title: string;
   summary: string;
   url: string;
+  isCustom?: boolean;
+  addedAt?: string;
+  weaknessNotes?: string;
 }
 
 export interface SearchPhrase {

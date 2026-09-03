@@ -1,5 +1,5 @@
-import React from 'react';
-import { TopicStrategy } from '../types';
+import React, { useState } from 'react';
+import { TopicStrategy, CompetitorPage } from '../types';
 import { 
   Search, 
   ExternalLink, 
@@ -11,14 +11,60 @@ import {
   TrendingUp, 
   Lightbulb,
   FileText,
-  AlertTriangle
+  AlertTriangle,
+  Plus,
+  Trash2,
+  Edit3,
+  Globe,
+  Sparkles
 } from 'lucide-react';
+import AddCompetitorModal from './AddCompetitorModal';
 
 interface TopicDeepDiveProps {
   topic: TopicStrategy;
+  onAddCompetitor?: (topicId: string, competitor: CompetitorPage, addToGap: boolean) => void;
+  onRemoveCompetitor?: (topicId: string, index: number) => void;
+  onUpdateCompetitor?: (topicId: string, index: number, updated: CompetitorPage) => void;
 }
 
-export const TopicDeepDive: React.FC<TopicDeepDiveProps> = ({ topic }) => {
+export const TopicDeepDive: React.FC<TopicDeepDiveProps> = ({ 
+  topic,
+  onAddCompetitor,
+  onRemoveCompetitor,
+  onUpdateCompetitor,
+}) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingCompetitor, setEditingCompetitor] = useState<CompetitorPage | null>(null);
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+
+  const handleOpenAdd = () => {
+    setEditingCompetitor(null);
+    setEditingIndex(null);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenEdit = (comp: CompetitorPage, idx: number) => {
+    setEditingCompetitor(comp);
+    setEditingIndex(idx);
+    setIsModalOpen(true);
+  };
+
+  const handleSaveCompetitor = (comp: CompetitorPage, addToGap: boolean) => {
+    if (editingIndex !== null && onUpdateCompetitor) {
+      onUpdateCompetitor(topic.id, editingIndex, comp);
+    } else if (onAddCompetitor) {
+      onAddCompetitor(topic.id, comp, addToGap);
+    }
+  };
+
+  const handleDeleteCompetitor = (idx: number, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm('آیا از حذف این صفحه رقیب اطمینان دارید؟')) {
+      onRemoveCompetitor?.(topic.id, idx);
+    }
+  };
+
+  const customCount = topic.rankingPages.filter(p => p.isCustom).length;
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-xs overflow-hidden">
       {/* Title Header */}
@@ -99,34 +145,102 @@ export const TopicDeepDive: React.FC<TopicDeepDiveProps> = ({ topic }) => {
 
         {/* ۲. صفحات رتبه‌دار فعلی */}
         <section className="space-y-3">
-          <div className="flex items-center gap-2 text-slate-800 font-bold text-base border-b border-slate-200 pb-2">
-            <span className="w-1 h-4 bg-blue-600 rounded-full inline-block"></span>
-            <Layers className="w-4 h-4 text-blue-600" />
-            <h3>۲. صفحات رتبه‌دار فعلی (تحلیل رقبا در نتایج برتر گوگل)</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-2">
+            <div className="flex items-center gap-2 text-slate-800 font-bold text-base">
+              <span className="w-1 h-4 bg-blue-600 rounded-full inline-block"></span>
+              <Layers className="w-4 h-4 text-blue-600" />
+              <h3>۲. صفحات رتبه‌دار فعلی (تحلیل رقبا در نتایج برتر گوگل)</h3>
+              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-medium border border-slate-200">
+                {topic.rankingPages.length} رقیب
+                {customCount > 0 && ` (${customCount} رقیب دستی)`}
+              </span>
+            </div>
+
+            {onAddCompetitor && (
+              <button
+                type="button"
+                onClick={handleOpenAdd}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-xs self-start sm:self-auto cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>افزودن دستی سایت رقیب</span>
+              </button>
+            )}
           </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {topic.rankingPages.map((page, idx) => (
-              <div key={idx} className="p-4 rounded-lg border border-slate-200 bg-white hover:bg-slate-50/70 transition-colors shadow-2xs">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold text-slate-500 font-mono">
-                    {page.domain}
-                  </span>
-                  <a 
-                    href={page.url} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium hover:underline"
-                  >
-                    <span>مشاهده منبع</span>
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
+              <div 
+                key={idx} 
+                className={`p-4 rounded-xl border transition-all shadow-2xs ${
+                  page.isCustom 
+                    ? 'border-blue-300 bg-blue-50/30 ring-1 ring-blue-200/60' 
+                    : 'border-slate-200 bg-white hover:bg-slate-50/70'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-slate-600 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                      {page.domain}
+                    </span>
+                    {page.isCustom && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200">
+                        تحلیل دستی شما
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1.5">
+                    {onUpdateCompetitor && (
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEdit(page, idx)}
+                        title="ویرایش تحلیل رقیب"
+                        className="p-1 rounded text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    {onRemoveCompetitor && (
+                      <button
+                        type="button"
+                        onClick={(e) => handleDeleteCompetitor(idx, e)}
+                        title="حذف رقیب"
+                        className="p-1 rounded text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <a 
+                      href={page.url} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="text-xs text-blue-600 hover:text-blue-800 flex items-center gap-1 font-medium hover:underline mr-1"
+                    >
+                      <span>منبع</span>
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </div>
                 </div>
-                <h4 className="text-sm font-bold text-slate-900 mb-1">
+
+                <h4 className="text-sm font-bold text-slate-900 mb-1.5 leading-snug">
                   {page.title}
                 </h4>
+                
                 <p className="text-xs text-slate-600 leading-relaxed">
-                  <strong className="text-slate-700">محتوای ارائه شده:</strong> {page.summary}
+                  <strong className="text-slate-700">محتوای ارائه شده: </strong>
+                  {page.summary}
                 </p>
+
+                {page.weaknessNotes && (
+                  <div className="mt-2.5 pt-2 border-t border-slate-200/70 text-xs text-amber-900 bg-amber-50/70 p-2 rounded-lg flex items-start gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <strong className="font-bold">نقطه ضعف شناسایی‌شده: </strong>
+                      <span>{page.weaknessNotes}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
@@ -294,6 +408,20 @@ export const TopicDeepDive: React.FC<TopicDeepDiveProps> = ({ topic }) => {
           </div>
         </section>
       </div>
+
+      {/* Add / Edit Competitor Modal */}
+      <AddCompetitorModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingCompetitor(null);
+          setEditingIndex(null);
+        }}
+        topic={topic}
+        onSave={handleSaveCompetitor}
+        initialCompetitor={editingCompetitor}
+        editIndex={editingIndex}
+      />
     </div>
   );
 };

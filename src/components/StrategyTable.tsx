@@ -135,8 +135,13 @@ export const StrategyTable: React.FC<StrategyTableProps> = ({
                 >
                   <td className="py-3.5 px-4 text-slate-900 font-semibold">
                     <div className="flex items-center gap-2">
-                      <span className={`w-1.5 h-1.5 rounded-full ${isSelected ? 'bg-blue-600 ring-2 ring-blue-200' : 'bg-transparent'}`} />
-                      {topic.title}
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${isSelected ? 'bg-blue-600 ring-2 ring-blue-200' : 'bg-transparent'}`} />
+                      <span>{topic.title}</span>
+                      {topic.rankingPages?.some(p => p.isCustom) && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800 border border-blue-200 shrink-0">
+                          +{topic.rankingPages.filter(p => p.isCustom).length} رقیب دستی
+                        </span>
+                      )}
                     </div>
                   </td>
                   <td className="py-3.5 px-4">
