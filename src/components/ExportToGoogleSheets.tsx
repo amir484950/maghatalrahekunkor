@@ -62,6 +62,9 @@ export const ExportToGoogleSheets: React.FC<Props> = ({ topics }) => {
       console.error('Sign in error:', err);
       if (err?.code === 'auth/popup-closed-by-user') {
         setErrorMsg('پنجره ورود به حساب گوگل بسته شد.');
+      } else if (err?.code === 'auth/unauthorized-domain' || err?.message?.includes('unauthorized-domain')) {
+        const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'دامنه شما';
+        setErrorMsg(`دامنه «${currentHost}» در فایربیس مجاز نشده است. برای حل مشکل، این دامنه را در کنسول Firebase در بخش Authentication > Settings > Authorized domains اضافه کنید.`);
       } else {
         setErrorMsg(err?.message || 'خطا در برقراری ارتباط با حساب گوگل.');
       }
@@ -97,7 +100,12 @@ export const ExportToGoogleSheets: React.FC<Props> = ({ topics }) => {
           return;
         }
       } catch (authErr: any) {
-        setErrorMsg('خطا در احراز هویت با حساب گوگل.');
+        if (authErr?.code === 'auth/unauthorized-domain' || authErr?.message?.includes('unauthorized-domain')) {
+          const currentHost = typeof window !== 'undefined' ? window.location.hostname : 'دامنه شما';
+          setErrorMsg(`دامنه «${currentHost}» در فایربیس مجاز نشده است. برای حل مشکل، این دامنه را در کنسول Firebase در بخش Authentication > Settings > Authorized domains اضافه کنید.`);
+        } else {
+          setErrorMsg('خطا در احراز هویت با حساب گوگل.');
+        }
         return;
       } finally {
         setIsSigningIn(false);
